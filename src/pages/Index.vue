@@ -12,8 +12,8 @@
         <template v-slot:top-right>
           <q-input
             dense
-            debounce="300"
             v-model="filter"
+            @keyup.enter="search"
             placeholder="Search"
             class="search-input"
             maxlength="50"
@@ -46,6 +46,12 @@ export default {
           sortable: true
         },
         {
+          name: "description",
+          label: "Description",
+          align: "left",
+          field: field => (field.description || "").slice(0, 30) + "..."
+        },
+        {
           name: "owner",
           label: "Owner",
           required: true,
@@ -54,17 +60,11 @@ export default {
           field: field => field.owner.login
         },
         {
-          name: "description",
-          label: "Description",
-          align: "left",
-          field: field => (field.description || "").slice(0, 30) + "..."
-        },
-        {
           name: "stars",
           label: "Stars",
           align: "left",
           sortable: true,
-          field: field => field.repo_info.stargazers_count
+          field: field => field.stargazers_count
         },
         {
           name: "last_commit",
@@ -73,28 +73,41 @@ export default {
           sortable: true,
           sort: (a, b) => date.getDateDiff(a, b),
           field: field =>
-            date.formatDate(field.repo_info.updated_at, "MMM D, YYYY, HH:mm")
+            date.formatDate(field.updated_at, "MMM D, YYYY, HH:mm")
         }
       ],
       data: [],
       filter: "",
-      loading: true
+      loading: false
     };
   },
   async created() {
-    this.data = await this.getData();
-    this.loading = false;
+    this.data = await this.getRepositories();
   },
   methods: {
-    async getData() {
-      const repositories = await githubApi.getRepositories();
+    async getRepositories() {
+      this.loading = true;
 
-      return await Promise.all(
-        repositories.data.map(async repo => ({
+      const repositories = await githubApi.getRepositories();
+      const data = await Promise.all(
+        repositories.map(async repo => ({
           ...repo,
-          repo_info: (await githubApi.getRepoInfo(repo.full_name)).data
+          ...(await githubApi.getRepoInfo(repo.full_name))
         }))
       );
+
+      this.loading = false;
+      return data;
+    },
+    async searchRepositories() {
+      this.loading = true;
+      const data = await githubApi.searchRepositories(this.filter);
+
+      this.loading = false;
+      return data.items;
+    },
+    async search() {
+      this.data = await this.searchRepositories();
     }
   }
 };
