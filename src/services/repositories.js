@@ -11,7 +11,7 @@ export default {
       }
     });
   },
-  getRepoInfo(name) {
+  getRepoDetail(name) {
     return axios.get(`repos/${name}`);
   },
   getCommits(name) {

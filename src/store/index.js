@@ -1,29 +1,29 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import Vue from "vue";
+import Vuex from "vuex";
+import createPersistedState from "vuex-persistedstate";
 
-// import example from './module-example'
+Vue.use(Vuex);
 
-Vue.use(Vuex)
-
-/*
- * If not building with SSR mode, you can
- * directly export the Store instantiation;
- *
- * The function below can be async too; either use
- * async/await or return a Promise which resolves
- * with the Store instance.
- */
-
-export default function (/* { ssrContext } */) {
+export default function() {
   const Store = new Vuex.Store({
-    modules: {
-      // example
+    plugins: [createPersistedState()],
+    state: {
+      favorites: []
     },
+    getters: {
+      isFavorite: state => id => state.favorites.includes(id)
+    },
+    mutations: {
+      addFavorite(state, id) {
+        console.log(id);
+        state.favorites.push(id);
+      },
+      removeFavorite({ favorites }, id) {
+        const favIndex = favorites.findIndex(fav => fav === id);
+        Vue.delete(favorites, favIndex);
+      }
+    }
+  });
 
-    // enable strict mode (adds overhead!)
-    // for dev mode only
-    strict: process.env.DEBUGGING
-  })
-
-  return Store
+  return Store;
 }
