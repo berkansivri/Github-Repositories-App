@@ -1,7 +1,7 @@
 <template>
   <q-page v-if="repository" class="q-pa-xl">
-    <header class="flex space-between">
-      <div>
+    <div class="flex justify-between">
+      <div class="repository-name">
         <h5 class="q-my-xs">
           {{ repository.owner.login }} /
           <strong>{{ repository.name }}</strong>
@@ -10,25 +10,38 @@
           {{ repository.description }}
         </p>
       </div>
-      <q-badge color="grey" class="star-badge">
-        <q-icon name="star" /> <span>Star</span>
-        <span>{{ repository.stargazers_count }}</span>
-      </q-badge>
-    </header>
-    <Explorer :repository="repository" />
+      <div class="flex">
+        <RepoBadge
+          :label="isFavorite ? 'Unstar' : 'Star'"
+          :value="repository.stargazers_count"
+          :icon="isFavorite ? 'star' : 'star_border'"
+          @toggle="toggleStar"
+        />
+        <RepoBadge
+          label="Fork"
+          :value="repository.forks"
+          icon="fas fa-code-branch"
+          class="q-ml-md"
+        />
+      </div>
+    </div>
+    <RepoTabs :repository="repository" />
   </q-page>
   <Spinner v-else />
 </template>
 
 <script>
+import { mapActions } from "vuex";
 import repositoriesApi from "../services/repositories.js";
 import Spinner from "../components/Spinner";
-import Explorer from "../components/Explorer";
+import RepoTabs from "../components/RepoTabs";
+import RepoBadge from "../components/RepoBadge";
 
 export default {
   components: {
     Spinner,
-    Explorer
+    RepoTabs,
+    RepoBadge
   },
   data() {
     return {
@@ -38,10 +51,16 @@ export default {
       fileContent: null
     };
   },
-  async created() {
-    await this.getRepoDetail();
+  computed: {
+    isFavorite() {
+      return this.$store.getters.isFavorite(this.repository.id);
+    }
+  },
+  created() {
+    this.getRepoDetail();
   },
   methods: {
+    ...mapActions(["toggleFavorite"]),
     async getRepoDetail() {
       const { user, repo } = this.$route.params;
       this.repository = await repositoriesApi.getRepoDetail(`${user}/${repo}`);
@@ -49,13 +68,24 @@ export default {
       if (!this.repository) {
         this.$router.push("/404");
       }
+    },
+    toggleStar() {
+      this.toggleFavorite(this.repository.id);
+      // simulate to increase star count
+      this.$set(
+        this.repository,
+        "stargazers_count",
+        this.repository.stargazers_count + (this.isFavorite ? 1 : -1)
+      );
     }
   }
 };
 </script>
 
 <style lang="scss" scoped>
-.star-badge {
-  height: 2rem;
+.repository-name {
+  h5 {
+    margin-top: 0px;
+  }
 }
 </style>

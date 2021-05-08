@@ -15,12 +15,20 @@ export default function() {
     },
     mutations: {
       addFavorite(state, id) {
-        console.log(id);
         state.favorites.push(id);
       },
       removeFavorite({ favorites }, id) {
         const favIndex = favorites.findIndex(fav => fav === id);
         Vue.delete(favorites, favIndex);
+      }
+    },
+    actions: {
+      toggleFavorite({ commit, getters }, repoId) {
+        const mutation = getters.isFavorite(repoId)
+          ? "removeFavorite"
+          : "addFavorite";
+
+        commit(mutation, repoId);
       }
     }
   });

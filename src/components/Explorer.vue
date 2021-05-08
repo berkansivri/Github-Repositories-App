@@ -1,5 +1,6 @@
 <template>
   <div class="content-list">
+    <Spinner v-if="isLoading" />
     <q-breadcrumbs gutter="sm" class="q-mb-sm segments">
       <q-breadcrumbs-el
         v-for="segment in segments"
@@ -10,13 +11,7 @@
     </q-breadcrumbs>
     <q-card flat bordered>
       <div v-if="fileContent" class="file-content">
-        <q-input
-          :value="fileContent"
-          filled
-          type="textarea"
-          disable
-          rows="30"
-        />
+        <q-input :value="fileContent" filled type="textarea" disable autogrow />
       </div>
       <Content
         v-else
@@ -31,12 +26,14 @@
 
 <script>
 import Content from "./Content";
+import Spinner from "./Spinner";
 import mixin from "../boot/mixin";
 
 export default {
   mixins: [mixin],
   components: {
-    Content
+    Content,
+    Spinner
   },
   props: {
     repository: Object
@@ -44,8 +41,9 @@ export default {
   data() {
     return {
       segments: [],
-      fileContent: "",
-      contents: []
+      fileContent: null,
+      contents: [],
+      isLoading: false
     };
   },
   created() {
@@ -53,6 +51,7 @@ export default {
   },
   methods: {
     async getContents() {
+      this.isLoading = true;
       const contentsUrl = this.normalizeUrl(this.repository.contents_url);
       const response = await this.$axios(contentsUrl);
       this.contents = response.sort(this.sortByContentType);
@@ -62,12 +61,14 @@ export default {
         name: this.repository.name,
         contents: this.contents
       });
+      this.isLoading = false;
     },
     async openContent(content) {
+      this.isLoading = true;
       const response = await this.$axios(content.url);
 
       if (response.type === "file") {
-        this.fileContent = atob(response.content);
+        this.fileContent = atob(response.content); // decode from base64
       } else {
         this.contents = response.sort(this.sortByContentType);
       }
@@ -77,15 +78,16 @@ export default {
         name: content.name,
         contents: this.contents
       });
+      this.isLoading = false;
     },
     openSegment(segment) {
       this.fileContent = null;
       this.contents = segment.contents;
 
-      const segmentIndex = this.segments.findIndex(
+      const selectedSegmentIndex = this.segments.findIndex(
         seg => seg.id === segment.id
       );
-      this.segments = this.segments.slice(0, segmentIndex + 1);
+      this.segments = this.segments.slice(0, selectedSegmentIndex + 1);
     }
   }
 };
@@ -94,7 +96,6 @@ export default {
 <style lang="scss" scoped>
 .content-list {
   min-width: 50%;
-  margin-top: 2rem;
 
   .segments {
     font-size: 1.5rem;
@@ -106,7 +107,7 @@ export default {
   }
 }
 .file-content {
-  height: 500px;
+  max-height: 700px;
   overflow: scroll;
   resize: none;
 }
