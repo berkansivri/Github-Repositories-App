@@ -39,6 +39,16 @@
             <q-td v-for="col in props.cols" :key="col.name" :props="props">
               {{ col.value }}
             </q-td>
+            <q-td auto-width>
+              <q-btn
+                size="md"
+                color="blue-grey"
+                round
+                dense
+                @click="() => getDetails(props)"
+                icon="info"
+              />
+            </q-td>
           </q-tr>
         </template>
       </q-table>
@@ -142,6 +152,9 @@ export default {
         : "addFavorite";
 
       this.$store.commit(mutation, row.id);
+    },
+    getDetails({ row: { full_name } }) {
+      this.$router.push(full_name);
     }
   }
 };

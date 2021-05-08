@@ -1,0 +1,113 @@
+<template>
+  <div class="content-list">
+    <q-breadcrumbs gutter="sm" class="q-mb-sm segments">
+      <q-breadcrumbs-el
+        v-for="segment in segments"
+        :key="segment.id"
+        :label="segment.name"
+        @click="openSegment(segment)"
+      />
+    </q-breadcrumbs>
+    <q-card flat bordered>
+      <div v-if="fileContent" class="file-content">
+        <q-input
+          :value="fileContent"
+          filled
+          type="textarea"
+          disable
+          rows="30"
+        />
+      </div>
+      <Content
+        v-else
+        v-for="content in contents"
+        :key="content.sha"
+        :content="content"
+        @open="openContent"
+      />
+    </q-card>
+  </div>
+</template>
+
+<script>
+import Content from "./Content";
+import mixin from "../boot/mixin";
+
+export default {
+  mixins: [mixin],
+  components: {
+    Content
+  },
+  props: {
+    repository: Object
+  },
+  data() {
+    return {
+      segments: [],
+      fileContent: "",
+      contents: []
+    };
+  },
+  created() {
+    this.getContents();
+  },
+  methods: {
+    async getContents() {
+      const contentsUrl = this.normalizeUrl(this.repository.contents_url);
+      const response = await this.$axios(contentsUrl);
+      this.contents = response.sort(this.sortByContentType);
+
+      this.segments.push({
+        id: this.repository.id,
+        name: this.repository.name,
+        contents: this.contents
+      });
+    },
+    async openContent(content) {
+      const response = await this.$axios(content.url);
+
+      if (response.type === "file") {
+        this.fileContent = atob(response.content);
+      } else {
+        this.contents = response.sort(this.sortByContentType);
+      }
+
+      this.segments.push({
+        id: content.sha,
+        name: content.name,
+        contents: this.contents
+      });
+    },
+    openSegment(segment) {
+      this.fileContent = null;
+      this.contents = segment.contents;
+
+      const segmentIndex = this.segments.findIndex(
+        seg => seg.id === segment.id
+      );
+      this.segments = this.segments.slice(0, segmentIndex + 1);
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+.content-list {
+  min-width: 50%;
+  margin-top: 2rem;
+
+  .segments {
+    font-size: 1.5rem;
+    color: blue;
+    span:hover {
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  }
+}
+.file-content {
+  height: 500px;
+  overflow: scroll;
+  resize: none;
+}
+</style>
