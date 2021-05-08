@@ -7,7 +7,9 @@
         :columns="columns"
         row-key="id"
         :rows-per-page-options="[10, 20, 30, 40, 50]"
+        rowCount="20"
         :loading="isLoading"
+        :pagination.sync="pagination"
       >
         <template v-slot:top-right>
           <q-input
@@ -32,7 +34,7 @@
                 color="blue"
                 round
                 dense
-                @click="() => setFavorite(props)"
+                @click="() => toggleFavorite(props.row.id)"
                 :icon="isFavorite(props.row.id) ? 'star' : 'star_border'"
               />
             </q-td>
@@ -57,7 +59,7 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 import { date } from "quasar";
 import repositoriesApi from "../services/repositories.js";
 
@@ -65,6 +67,9 @@ export default {
   name: "PageIndex",
   data() {
     return {
+      pagination: {
+        rowsPerPage: 20
+      },
       columns: [
         {
           label: "Favorite"
@@ -125,6 +130,7 @@ export default {
     this.isLoading = false;
   },
   methods: {
+    ...mapActions(["toggleFavorite"]),
     async getRepositories() {
       const repositories = await repositoriesApi.getRepositories();
       return await Promise.all(
@@ -145,13 +151,6 @@ export default {
         this.data = await this.searchRepositories(this.filter);
       }
       this.isLoading = false;
-    },
-    setFavorite({ row }) {
-      const mutation = this.isFavorite(row.id)
-        ? "removeFavorite"
-        : "addFavorite";
-
-      this.$store.commit(mutation, row.id);
     },
     getDetails({ row: { full_name } }) {
       this.$router.push(full_name);
