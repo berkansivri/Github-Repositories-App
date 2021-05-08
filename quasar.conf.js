@@ -8,7 +8,7 @@
 /* eslint-env node */
 const ESLintPlugin = require("eslint-webpack-plugin");
 
-module.exports = function(/* ctx */) {
+module.exports = function(ctx) {
   return {
     // https://v1.quasar.dev/quasar-cli/supporting-ts
     supportTS: false,
@@ -43,9 +43,9 @@ module.exports = function(/* ctx */) {
       vueRouterMode: "history", // available values: 'hash', 'history'
       env: {
         GITHUB_API: "https://api.github.com",
-        GITHUB_TOKEN: "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"
+        GITHUB_TOKEN: "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"
       },
-
+      distDir: ctx.mode.spa ? "public" : null,
       // transpile: false,
 
       // Add dependencies for transpiling with Babel (Array of string/regex)

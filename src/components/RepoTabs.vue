@@ -10,7 +10,7 @@
     >
       <q-tab name="code" icon="fas fa-code" label="Code" />
       <q-tab name="issues" icon="fas fa-exclamation-circle" label="Issues">
-        <q-badge color="grey" class="q-ml-xs">
+        <q-badge color="grey" rounded class="q-ml-xs">
           {{ repository.open_issues_count }}
         </q-badge>
       </q-tab>
@@ -25,6 +25,7 @@
         <Issues :repository="repository" />
       </q-tab-panel>
       <q-tab-panel name="pullrequests">
+        TODO
         <!-- <PullRequests /> -->
       </q-tab-panel>
     </q-tab-panels>

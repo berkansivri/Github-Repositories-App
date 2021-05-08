@@ -31,7 +31,7 @@
             <q-td auto-width>
               <q-btn
                 size="md"
-                color="blue"
+                text-color="black"
                 round
                 dense
                 @click="() => toggleFavorite(props.row.id)"

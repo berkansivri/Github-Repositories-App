@@ -25,7 +25,7 @@
         />
       </div>
     </div>
-    <RepoTabs :repository="repository" />
+    <RepoTabs class="q-mt-md" :repository="repository" />
   </q-page>
   <Spinner v-else />
 </template>

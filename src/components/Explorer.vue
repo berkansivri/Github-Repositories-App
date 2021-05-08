@@ -11,7 +11,7 @@
     </q-breadcrumbs>
     <q-card flat bordered>
       <div v-if="fileContent" class="file-content">
-        <q-input :value="fileContent" filled type="textarea" disable autogrow />
+        <q-input :value="fileContent" filled type="textarea" autogrow />
       </div>
       <Content
         v-else
